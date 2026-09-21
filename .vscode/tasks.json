@@ -1,0 +1,108 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "0. Create Build Directory",
+            "type": "shell",
+            "command": "mkdir",
+            "args": [
+                "-p",
+                "${workspaceFolder}/build"
+            ],
+            "problemMatcher": []
+        },        
+        {
+            "label": "1. STM32 Build (ELF)",
+            "type": "shell",
+            "command": "arm-none-eabi-gcc",
+            "args": [
+                // --- Nucleo-F411RE (Cortex-M4) ハードウェア指定 ---
+                "-mcpu=cortex-m4",
+                "-mthumb",
+                "-mfpu=fpv4-sp-d16",
+                "-mfloat-abi=hard",
+                
+                // --- コンパイルオプション ---
+                "-O0",                             // 最適化オフ
+                "-g3",                             // デバッグ情報付与
+                "-nostdlib",                       // 標準ライブラリ除外（ベアメタル用）
+                
+                // --- マクロ定義 (CMSISレジスタ定義の有効化) ---
+                "-DSTM32F411xE",
+                
+                // --- すべてのフォルダへのインクルードパス (-I) ---
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/chip_headers/CMSIS/Device/ST/STM32F4xx/Include",
+                "-I${workspaceFolder}/chip_headers/CMSIS/Include",                
+                "-I${workspaceFolder}/Src",
+                "-I${workspaceFolder}/BSP",
+                "-I${workspaceFolder}/System",
+                "-I${workspaceFolder}/Driver",
+                "-I${workspaceFolder}/Driver/GPIO",
+                "-I${workspaceFolder}/Driver/UART",
+                
+                // --- 全フォルダ内のCソースファイルを一括検索して指定 ---
+                "${workspaceFolder}/Src/*.c",
+                "${workspaceFolder}/BSP/*.c",
+                "${workspaceFolder}/System/*.c",
+                "${workspaceFolder}/Driver/GPIO/*.c",
+                //"${workspaceFolder}/Driver/UART/*.c",   
+                            
+                // --- スタートアップファイル (.s) の指定 ---
+                "${workspaceFolder}/Startup/startup_stm32f411retx.s",
+                
+                // --- リンカスクリプト (.ld) の指定 ---
+                "-T",
+                "${workspaceFolder}/STM32F411RETX_FLASH.ld",
+                
+                // --- 出力設定 ---
+                "-o",
+                "${workspaceFolder}/build/output.elf"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": [],
+            "dependsOn":[
+                "0. Create Build Directory"
+            ]
+        },
+        {
+            "label": "2. Generate BIN File",
+            "type": "shell",
+            "command": "arm-none-eabi-objcopy",
+            "args": [
+                "-O",
+                "binary",
+                "${workspaceFolder}/build/output.elf",
+                "${workspaceFolder}/build/output.bin"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "dependsOn":[
+                "1. STM32 Build (ELF)"
+            ]
+        },
+        {
+            "label": "3. STM32 Flash (Upload)",
+            "type": "shell",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "-c",
+                "port=SWD",
+                "-w",
+                "${workspaceFolder}/build/output.bin",
+                "0x08000000",
+                "-v",
+                "-rst"
+            ],
+            "problemMatcher": [],
+            "dependsOn": [
+                "2. Generate BIN File"
+            ]
+        }
+    ]
+}

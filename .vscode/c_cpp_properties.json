@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/chip_headers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/chip_headers/CMSIS/Include"
+            ],
+            "defines": [
+                "STM32F411xE"
+            ],
+            "compilerPath": "/opt/st/stm32cubeclt_1.22.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc"
+        }
+    ],
+    "version": 4
+}
